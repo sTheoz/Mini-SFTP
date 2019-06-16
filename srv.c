@@ -61,8 +61,6 @@ int main(void)
 
                 result_A = recup(nwsfd);
 
-                printf("J'ai %lld\n", result_A);
-
                 //Lit la requête
                 r = readRequest(nwsfd);
                 //La requête est dans la structure
@@ -72,16 +70,6 @@ int main(void)
 
                 //L'échange de donnée se fait avec TEA
 
-                /* bzero(buf,BFSZ);
-                n=recv(nwsfd,buf,BFSZ,0);
-                write(fd,buf,256);
-                if(n==0){
-                    close(nwsfd);
-                    exit(0);
-                }
-                printf("Octects reçu : %d\n",n);*/
-                //Réponse au client
-                //m=send(nwsfd,buf,BFSZ,0);
             }
         }
         printf("Connexion réalisé avec le client %d\n",nwsfd);

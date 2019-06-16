@@ -50,9 +50,9 @@ int sendFile(char file[], int fd, int size, uint64 cle){
     *(k+1)=cle;
     *(k+2)=cle;
     *(k+3)=cle;
-    //genKey(&k);
     fd_file = open(file,O_RDONLY);
-    while( n = read(fd_file,v, sizeof(uint32_t)*2) == 8 ){
+    while( total <= (size-8) ){
+        n = read(fd_file,v, sizeof(uint32_t)*2);
         encrypt(v,k);
         m = send(fd, v, sizeof(uint32_t)*2,0);
         total += m;
@@ -61,9 +61,9 @@ int sendFile(char file[], int fd, int size, uint64 cle){
             perror("Erreur lors de l'envoie du fichier apres chiffrement");
         }
     }
-    printf("Je suis là %d \n",n);
+    n = read(fd_file,v, size-total);
     encrypt(v,k);
-    m = send(fd, v, n,0);
+    m = send(fd, v, size-total,0);
     total += m;
     printf("Envoie des données : %d otects\n", total);
     if(m == -1){
@@ -87,20 +87,21 @@ int recvFile(char file[],int fd, int size, uint64 cle){
     *(k+1)=cle;
     *(k+2)=cle;
     *(k+3)=cle;
-    //genKey(&k);
     fd_file = open(file,O_RDWR|O_CREAT,0640);
-    //fd_file = open("test.txt",O_RDWR|O_CREAT,0777);
-    while( n = read(fd,v, sizeof(uint32_t)*2) == sizeof(uint32_t)*2 ){
+    while(  total <= (size-8) ){
+        n = read(fd,v, sizeof(uint32_t)*2);
         decrypt(v,k);
         m = write(fd_file, v, sizeof(uint32_t)*2);
         total += m;
-        //printf("Ecriture du fichier : %d otects\n", total );
+        printf("Ecriture du fichier : %d otects\n", total );
         if(m == -1){
             perror("Erreur de reception du fichier lors de l'écriture");
         }
     }
+    n = read(fd,v, size-total);
     decrypt(v,k);
-    m = write(fd_file, v, sizeof(uint32_t)*2);
+    m = write(fd_file, v, size-total);
+    //Il faudrait supprimer les derniers octets en trop du fichiers
     total += m;
     printf("Ecriture du fichier : %d octets\n", total);
     fflush(stdout);
@@ -114,7 +115,6 @@ int recvFile(char file[],int fd, int size, uint64 cle){
 int recvDir(int fd){
     char buf[8];
     int n,m,sfd;
-    //sfd = open("ls.data", O_RDWR|O_CREAT,0740);
     stdout = dup(1);
     while( n = read(fd,buf,8) ){
         m = write(stdout, buf, 8);
@@ -122,7 +122,6 @@ int recvDir(int fd){
             perror("Erreur de reception du fichier lors de l'écriture");
         }
     }
-    //m = write(stdout, buf, 8);
     if(m == -1){
         perror("Erreur de reception du fichier lors de l'écriture");
         return -1;

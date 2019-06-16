@@ -60,4 +60,5 @@ int sendResponse(int fd, struct request r, uint64 cle){
 	if(r.kind == REQUEST_DIR)sendDir(r.path, fd);
 	if(r.kind == REQUEST_GET)sendFile(r.path, fd, a.nbbytes, cle);
 	if(r.kind == REQUEST_PUT)recvFile(r.path, fd, r.nbbytes, cle);
+	return 0;
 }

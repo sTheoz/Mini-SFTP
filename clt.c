@@ -109,7 +109,7 @@ int main(int argc, char const *argv[])
             printf("Je vais recup %d\n",nbytes);
             recvFile(argv[4], sfd, ans.nbbytes, result_A); //r.path = serverpath
         }else if(n_request == REQUEST_PUT){
-            printf("Je vais envoyer un fichier");
+            printf("Envoie du fichier en cours...\n");
             sendFile(argv[4], sfd, r.nbbytes,result_A);
         }else if(n_request == REQUEST_DIR){
             recvDir(sfd);
