@@ -6,6 +6,10 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <sys/wait.h>
+#include <errno.h>
 
 #include "request.h"
 #include "response.h"
@@ -24,13 +28,15 @@ int main(void)
     struct request r;
     uint64 result_A;
     
-    sfd = socket(AF_INET, SOCK_STREAM,0);
+    /*sfd = socket(AF_INET, SOCK_STREAM,0);
     if(sfd == -1){
         perror("Socket creation");
         exit(1);
-    }
+    }*/
+
+    sfd=create_tcp_server();
     //Préparation d'une struct sockaddr_in avec les coordonnées du serveur
-    l=sizeof(struct sockaddr_in);
+    /* l=sizeof(struct sockaddr_in);
     memset(&scksrv,0,l);
     scksrv.sin_family = AF_INET;
     scksrv.sin_addr.s_addr = INADDR_ANY;
@@ -40,7 +46,7 @@ int main(void)
         perror("Binding");
         exit(2);
     }
-    listen(sfd,0);
+    listen(sfd,0);*/
 
 
     //Il entre dans une boucle d'extraction des demandes de connexions
@@ -78,4 +84,53 @@ int main(void)
         
     }
     return 0;
+}
+
+
+int create_tcp_server()
+{
+    int sfd;
+    struct addrinfo hints, *result = NULL, *rp = NULL;
+    memset(&hints, 0, sizeof(struct addrinfo));
+    hints.ai_family = AF_UNSPEC;     /* Allow IPv4 or IPv6 */
+    hints.ai_socktype = SOCK_STREAM; /* TCP socket */
+    hints.ai_flags = AI_PASSIVE;     /* For wildcard IP address */
+    hints.ai_protocol = 0;           /* Any protocol */
+    hints.ai_canonname = NULL;
+    hints.ai_addr = NULL;
+    hints.ai_next = NULL;
+    if ((sfd = getaddrinfo(NULL,"7716", &hints, &result)) != 0)
+    {
+        fprintf(stderr, "\t => getaddrinfo: %s\n", gai_strerror(sfd));
+        exit(EXIT_FAILURE);
+    }
+    if (result == NULL)
+    {
+        perror("\t => No adress succeeded\n");
+        exit(EXIT_FAILURE);
+    }
+    /* Création de la socket. */
+    for (rp = result; rp != NULL; rp = rp->ai_next)
+    {
+        sfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+        if (sfd == -1)
+            continue;
+        if (bind(sfd, rp->ai_addr, rp->ai_addrlen) == 0)
+        {
+            break;
+        }
+        else
+        {
+            perror("\t => Erreur sur bind()\n");
+            close(sfd);
+            sfd = -1;
+        }
+    }
+    /* Mise en écoute de la socket. */
+    if (-1 == (listen(sfd, 0)))
+    {
+        perror("\t => Erreur sur listen()\n");
+        exit(EXIT_FAILURE);
+    }
+    return (sfd);
 }

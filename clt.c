@@ -6,6 +6,10 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <sys/wait.h>
+#include <errno.h>
 
 #include "request.h"
 #include "response.h"
@@ -62,6 +66,8 @@ int main(int argc, char const *argv[])
         perror("Connection failed ...");
         exit(1);
     }
+
+    //sfd = init_client();
     printf("Connexion établie avec le serveur...%d\n", n_request);
     //Echange des clés avec Diffie
 
@@ -134,3 +140,67 @@ int main(int argc, char const *argv[])
     return 0;
 }
 
+
+int init_client(){
+    int n, l, ll, r, sfd,nwsfd;
+
+	struct addrinfo criteria;
+	struct addrinfo s, *res;
+	struct sockaddr_storage scksrv, sckclt;   // To hold ipv4:6 independant socket addresses
+
+	char host[64], service[64], buf[64];
+
+
+	memset(&criteria, 0, sizeof(struct addrinfo));
+
+	criteria.ai_family = AF_UNSPEC;   // Allow IPv4 or IPv6
+	// criteria.ai_family = AF_INET6;
+	
+	criteria.ai_socktype = SOCK_STREAM;  // Socket with DGRAM type only
+
+	criteria.ai_protocol = 0; 
+
+	criteria.ai_flags = AI_PASSIVE; 
+	// criteria.ai_flags = AI_V4MAPPED|AI_PASSIVE|AI_NUMERICSERV;
+
+	criteria.ai_canonname = NULL;
+
+	criteria.ai_addr = NULL;
+
+	criteria.ai_next = NULL;
+
+	r = getaddrinfo(NULL, "7716", &criteria, &res);
+	if(r!=0){
+		fprintf(stderr, "getaddrinfo fails: %s\n", gai_strerror(r));
+		exit(3);
+	}
+
+	// Try successively socket addresses returned by getaddrinfo until
+	// socket and bind both succeed
+
+	sfd = sock_bind(res, &s);
+	if(sfd==-1){
+		fprintf(stderr, "Fails binding. Exiting ...%s\n");
+		exit(4);
+	}
+    return sfd;
+}
+
+int sock_bind(struct addrinfo *res, struct addrinfo *s){
+	int r, sfd = -1;
+
+	while(res!=NULL){
+		sfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+     // On va tenter le bind
+			r = bind(sfd, res->ai_addr, res->ai_addrlen);
+
+			if(r == 0){  // Bind success
+				break;
+			}else{
+				close(sfd);
+				sfd=-1;
+			}
+		res=res->ai_next;
+	}
+	return(sfd);
+}
