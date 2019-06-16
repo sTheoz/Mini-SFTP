@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+
 void encrypt (uint32_t* v, uint32_t* k) {
     uint32_t v0=v[0], v1=v[1], sum=0, i;           /* set up */
     uint32_t delta=0x9e3779b9;                     /* a key schedule constant */
@@ -30,7 +31,7 @@ void decrypt(uint32_t* v, uint32_t* k){
     }                                              
     v[0]=v0; v[1]=v1;
 }
-
+/*
 int main(int argc, char** argv){
     if(argc != 5){
         printf("Usage : %s <-d ou -e> <filekey> <file1> <file2>",argv[0]);
@@ -70,4 +71,4 @@ int main(int argc, char** argv){
     decrypt(v,k);
     printf("Dechiffrement : v0 = %d, v1 = %d\n", v[0],v[1]);
     return 0;
-}
+}*/

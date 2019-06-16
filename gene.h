@@ -13,3 +13,6 @@ uint64 generateur(uint64 p);
 uint64 recup(int sockfd);
 
 uint64 envoi(int sockfd, uint64 sophie);
+
+int checkPrimeNumber(int num);
+int sendPrimeNumber(int socket);

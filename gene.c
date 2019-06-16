@@ -64,3 +64,42 @@ uint64 envoi(int sockfd, uint64 sophie){
 
 	return expm(gb,a,p);
 }
+
+//Deux fonctions majoritairement pris sur Lucas N.
+int checkPrimeNumber(int num)
+{
+    if (num <= 1)
+    {
+        return 0;
+    }
+
+    // Even numbers.
+    if (num % 2 == 0)
+    {
+        return num == 2; // 2 is the only even prime.
+    }
+
+    // Odd numbers.
+    // Start loop at 3 and step 2 to skip even divisors.
+    for (int i = 3; i * i <= num; i += 2)
+    {
+        if (num % i == 0)
+        {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+
+uint64 sendPrimeNumber(int socket)
+{
+	uint64 result_A;
+    srand(time(NULL));
+    int number = rand();
+    while (checkPrimeNumber(number) != 1){
+        number = rand();
+    }
+	result_A = envoi(socket,number);
+    return result_A;
+}

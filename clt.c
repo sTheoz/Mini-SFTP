@@ -9,6 +9,9 @@
 
 #include "request.h"
 #include "response.h"
+#include "tea.h"
+#include "fileF.h"
+#include "gene.h"
 
 #define BFSZ 256
 
@@ -33,13 +36,14 @@ struct answer readServ(int fd){
 int main(int argc, char const *argv[])
 {
     if(argc<4){
-        printf("Il faut 3 arguments : %s  <adresse du srv> <numéro de port> <commande> <options... \n",argv[0]);
+        printf("Il faut 3 arguments : %s  <adresse du srv> <commande> <options... \n",argv[0]);
         return 0;
     }
     char buf[BFSZ];
     struct sockaddr_in scksrv;
     int sfd,l,n=0,fd,nwsfd,m,length, error;
-    int n_request;
+    int n_request=0;
+    uint64 result_A;
 
     struct request r;
     struct answer ans;
@@ -51,27 +55,30 @@ int main(int argc, char const *argv[])
     memset(&scksrv,0,l);
     scksrv.sin_family = AF_INET;
     inet_pton(AF_INET,argv[1],&scksrv.sin_addr);
-    scksrv.sin_port=htons((unsigned short)strtol(argv[2],NULL,0));
+    scksrv.sin_port=htons(7716);
     //Demande de connexion
     error = connect(sfd,(struct sockaddr *)&scksrv,l);
     if(error == -1 ){
         perror("Connection failed ...");
         exit(1);
     }
-
+    printf("Connexion établie avec le serveur...%d\n", n_request);
     //Echange des clés avec Diffie
 
-    //Construction de la requête (put, get ou dir)
-    n_request = num_request(argv[3]);
+    result_A = sendPrimeNumber(sfd);
 
-    if(n_request == REQUEST_PUT && argc >= 4){
-        r = r_put(argv[4]);
+    //Construction de la requête (put, get ou dir)
+    n_request = num_request(argv[2]);
+    printf("Numero de requete %d\n",n_request);
+
+    if(n_request == REQUEST_PUT && argc >= 5){
+        r = r_put(argv[3]);
     }else
-    if(n_request == REQUEST_GET && argc >= 4){
-        r = r_get(argv[4]);
+    if(n_request == REQUEST_GET && argc >= 5){
+        r = r_get(argv[3]);
     }else
     if(n_request == REQUEST_DIR && argc >= 4){
-        r = r_dir(argv[4]);
+        r = r_dir(argv[3]);
     }else
     if(n_request == REQUEST_ERROR){
         perror("Problème de nom de la requête");
@@ -99,11 +106,13 @@ int main(int argc, char const *argv[])
     }else if( ans.ack == ANSWER_OK ){
         if(n_request == REQUEST_GET){
             int nbytes = ans.nbbytes;
-            //n = recupTEA(sfd, nbytes);
+            printf("Je vais recup %d\n",nbytes);
+            recvFile(argv[4], sfd, ans.nbbytes, result_A); //r.path = serverpath
         }else if(n_request == REQUEST_PUT){
-            // n = envoieTEA(sfd, r);
+            printf("Je vais envoyer un fichier");
+            sendFile(argv[4], sfd, r.nbbytes,result_A);
         }else if(n_request == REQUEST_DIR){
-            // n = recupTEA(sfd, 0);
+            recvDir(sfd);
         }
     }else{
         perror("Erreur reponse du serveur incohérente");
@@ -121,6 +130,7 @@ int main(int argc, char const *argv[])
         fflush(stdout);
     }
     close(nwsfd);*/
+    close(sfd);
     return 0;
 }
 

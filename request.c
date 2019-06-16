@@ -19,12 +19,9 @@ struct request {
  * MAXPATH */
 
 int num_request(char req[]){
-    if(strcmp(req,"put") )
-        return REQUEST_PUT;
-    if( strcmp( req , "get") )
-        return REQUEST_GET;
-    if( strcmp( req , "dir") )
-        return REQUEST_DIR;
+    if(strcmp(req,"put") == 0)return REQUEST_PUT;
+    if( strcmp( req , "get") == 0)return REQUEST_GET;
+    if( strcmp( req , "dir") == 0)return REQUEST_DIR;
     return REQUEST_ERROR;
 }
 

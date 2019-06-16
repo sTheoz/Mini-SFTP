@@ -20,7 +20,7 @@ struct answer {
 };
 
 
-int sendResponse(int fd, struct request r){
+int sendResponse(int fd, struct request r, uint64 cle){
 	struct answer a;
 	int file,n;
 	unsigned int size;
@@ -57,7 +57,7 @@ int sendResponse(int fd, struct request r){
 		exit(2);
 	}
 
-	if(r.kind == REQUEST_DIR)sendDir();
-	if(r.kind == REQUEST_GET)recvFile();
-	if(r.kind == REQUEST_PUT)sendFile();
+	if(r.kind == REQUEST_DIR)sendDir(r.path, fd);
+	if(r.kind == REQUEST_GET)sendFile(r.path, fd, a.nbbytes, cle);
+	if(r.kind == REQUEST_PUT)recvFile(r.path, fd, r.nbbytes, cle);
 }
