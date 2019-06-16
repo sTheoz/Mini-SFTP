@@ -9,9 +9,9 @@ but : all
 		 main.o
 
 
-C_OFILES = clt.o 
+C_OFILES = clt.o request.o response.o fileF.o
 
-S_OFILES = srv.o
+S_OFILES = srv.o request.o response.o fileF.o
 
 CC = gcc
 
@@ -19,9 +19,11 @@ CFLAGS = -Wall -pedantic -g
 
 # CHAPITRE 3 : DEPENDANCES (REGLES IMPLICITES)
 
-clt.o : clt.c
+response.o : fileF.c request.c
 
-srv.o : srv.c
+clt.o : clt.c request.c	response.c fileF.c
+
+srv.o : srv.c request.c response.c fileF.c
 
 #CHAPITRE 4 : DEPENDANCES AVEC COMMANDES
 

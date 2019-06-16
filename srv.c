@@ -7,8 +7,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include "srv-dh.h"
-
+#include "request.h"
+#include "response.h"
 
 #define BFSZ 256
 
@@ -21,8 +21,10 @@ int main(int argc, char const *argv[])
     char buf[BFSZ];
     struct sockaddr_in scksrv,sckclt;
     pid_t pid;
-    int sfd,l,ll,n=0,fd,octet=0,nwsfd,m, error;
-    char file[20]="filename-0.txt";
+    int sfd,l,ll,n=0,fd,nwsfd, error;
+
+    struct request r;
+    
     sfd = socket(AF_INET, SOCK_STREAM,0);
     if(sfd == -1){
         perror("Socket creation");
@@ -42,7 +44,6 @@ int main(int argc, char const *argv[])
     listen(sfd,0);
 
 
-
     //Il entre dans une boucle d'extraction des demandes de connexions
     //fd=open(file,O_RDWR|O_CREAT,0600);
     bzero(buf,BFSZ);
@@ -59,9 +60,10 @@ int main(int argc, char const *argv[])
                 //Echange de clé avec diffie
                 
                 //Lit la requête
-                n = recv(nwsfd, buf, BFSZ,0);
-                //La requête est dans le buffer
-
+                r = readRequest(nwsfd);
+                //La requête est dans la structure
+                //Identifie et contruction de la reponse
+                n = sendResponse(nwsfd, r);
                 //Envoie de la réponse
 
                 //L'échange de donnée se fait avec TEA

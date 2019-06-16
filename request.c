@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 
 #define REQUEST_PUT 1
 #define REQUEST_GET 2
@@ -22,14 +24,14 @@ int num_request(char req[]){
     if( strcmp( req , "get") )
         return REQUEST_GET;
     if( strcmp( req , "dir") )
-        return REQUEST_DIR
+        return REQUEST_DIR;
     return REQUEST_ERROR;
 }
 
 struct request r_put(char file[]){
     struct request r;
     r.kind = REQUEST_PUT;
-    r.path = file;
+    strcpy(r.path, file);
     r.nbbytes = (int) strlen(file);
     return r;
 }
@@ -37,13 +39,20 @@ struct request r_put(char file[]){
 struct request r_get(char file[]){
     struct request r;
     r.kind = REQUEST_GET;
-    r.path = file;
+    strcpy(r.path, file);
     return r;
 }
 
 struct request r_dir(char directory[]){
     struct request r;
     r.kind = REQUEST_DIR;
-    r.path = directory;
+    strcpy(r.path, directory);
+    return r;
+}
+
+struct request readRequest(int fd){
+    int n;
+    struct request r;
+    n = recv(fd, &r , sizeof(r), 0);
     return r;
 }
