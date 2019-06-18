@@ -28,7 +28,7 @@ int sendToServ(int fd , void* buf, int size){
 struct answer readServ(int fd){
     ssize_t n;
     struct answer ans;
-    recv(fd, &ans , sizeof(ans), 0);
+    n = recv(fd, &ans , sizeof(ans), 0);
     if( n == -1 ){
         perror("Erreur lors de la reception de la reponse");
         exit(5);
@@ -43,9 +43,8 @@ int main(int argc, char const *argv[])
         printf("Il faut 3 arguments : %s  <adresse du srv> <commande> <options... \n",argv[0]);
         return 0;
     }
-    char buf[BFSZ];
     struct sockaddr_in scksrv;
-    int sfd,l,n=0,fd,nwsfd,m,length, error;
+    int sfd,l,n=0, error;
     int n_request=0;
     uint64 result_A;
 
@@ -140,16 +139,31 @@ int main(int argc, char const *argv[])
     return 0;
 }
 
+int sock_bind(struct addrinfo *res, struct addrinfo *s){
+    int r, sfd = -1;
+
+    while(res!=NULL){
+        sfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+     // On va tenter le bind
+            r = bind(sfd, res->ai_addr, res->ai_addrlen);
+
+            if(r == 0){  // Bind success
+                break;
+            }else{
+                close(sfd);
+                sfd=-1;
+            }
+        res=res->ai_next;
+    }
+    return(sfd);
+}
+
 
 int init_client(){
-    int n, l, ll, r, sfd,nwsfd;
+    int r, sfd;
 
 	struct addrinfo criteria;
 	struct addrinfo s, *res;
-	struct sockaddr_storage scksrv, sckclt;   // To hold ipv4:6 independant socket addresses
-
-	char host[64], service[64], buf[64];
-
 
 	memset(&criteria, 0, sizeof(struct addrinfo));
 
@@ -180,27 +194,9 @@ int init_client(){
 
 	sfd = sock_bind(res, &s);
 	if(sfd==-1){
-		fprintf(stderr, "Fails binding. Exiting ...%s\n");
+		fprintf(stderr, "Fails binding. Exiting ...\n");
 		exit(4);
 	}
     return sfd;
 }
 
-int sock_bind(struct addrinfo *res, struct addrinfo *s){
-	int r, sfd = -1;
-
-	while(res!=NULL){
-		sfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
-     // On va tenter le bind
-			r = bind(sfd, res->ai_addr, res->ai_addrlen);
-
-			if(r == 0){  // Bind success
-				break;
-			}else{
-				close(sfd);
-				sfd=-1;
-			}
-		res=res->ai_next;
-	}
-	return(sfd);
-}

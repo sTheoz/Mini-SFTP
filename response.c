@@ -22,7 +22,7 @@ struct answer {
 
 int sendResponse(int fd, struct request r, uint64 cle){
 	struct answer a;
-	int file,n;
+	int n;
 	unsigned int size;
 	if(r.kind == REQUEST_GET){
 		//tester le path

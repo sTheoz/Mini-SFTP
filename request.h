@@ -12,11 +12,11 @@ struct request {
 /* on alignera la taille de la strucuture sur un multiple de 8 octets (pour tea) en controlant
  * MAXPATH */
 
-int num_request(char req[]);
+int num_request(char* req);
 
-struct request r_put(char file[]);
-struct request r_get(char file[]);
+struct request r_put(char* file);
+struct request r_get(char* file);
 
-struct request r_dir(char directory[]);
+struct request r_dir(char* directory);
 
 struct request readRequest(int fd);

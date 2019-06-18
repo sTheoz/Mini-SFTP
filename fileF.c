@@ -16,7 +16,7 @@
 
 typedef unsigned long long int uint64;
 
-unsigned int sizeFile(char path[]){
+unsigned int sizeFile(char* path){
     FILE *file;
     unsigned int size;
  
@@ -34,25 +34,27 @@ unsigned int sizeFile(char path[]){
     return size;
 }
 
-int sendDir(char file[], int fd){
+int sendDir(char* file, int fd){
     close(1);
     stdout = dup(fd);
     execl("/bin/ls","ls","-l",file, NULL);
     return 0;
 }
 
-int sendFile(char file[], int fd, int size, uint64 cle){
+int sendFile(char* file, int fd, int size, uint64 cle){
     int fd_file,n,m,total=0;
-    int res_temp;
     u_int32_t v[2];
     u_int32_t k[4]={0};
     *k=cle;
-    *(k+1)=cle;
+
     *(k+2)=cle;
-    *(k+3)=cle;
+
     fd_file = open(file,O_RDONLY);
     while( total <= (size-8) ){
         n = read(fd_file,v, sizeof(uint32_t)*2);
+        if(n == -  1){
+            perror("Erreur sur le read");
+        }
         encrypt(v,k);
         m = send(fd, v, sizeof(uint32_t)*2,0);
         total += m;
@@ -62,6 +64,9 @@ int sendFile(char file[], int fd, int size, uint64 cle){
         }
     }
     n = read(fd_file,v, size-total);
+    if(n == -  1){
+        perror("Erreur sur le read");
+    }
     encrypt(v,k);
     m = send(fd, v, size-total,0);
     total += m;
@@ -73,32 +78,35 @@ int sendFile(char file[], int fd, int size, uint64 cle){
     //Savoir combien de zero a rajouter pour remplir le paquet
     /*memset(v,0,sizeof(uint32_t)*2);
     */
-    res_temp = 8 - n;
 
     return 0;
 }
 
-int recvFile(char file[],int fd, int size, uint64 cle){
+int recvFile(char* file,int fd, int size, uint64 cle){
     int fd_file,n,m,total=0;
-    int res_temp;
     u_int32_t v[2];
     u_int32_t k[4]={0};
     *k=cle;
-    *(k+1)=cle;
+
     *(k+2)=cle;
-    *(k+3)=cle;
+
     fd_file = open(file,O_RDWR|O_CREAT,0640);
     while(  total <= (size-8) ){
         n = read(fd,v, sizeof(uint32_t)*2);
+        if(n == -  1){
+            perror("Erreur sur le read");
+        }
         decrypt(v,k);
         m = write(fd_file, v, sizeof(uint32_t)*2);
         total += m;
-        printf("Ecriture du fichier : %d otects\n", total );
         if(m == -1){
             perror("Erreur de reception du fichier lors de l'écriture");
         }
     }
     n = read(fd,v, size-total);
+    if(n == -  1){
+        perror("Erreur sur le read");
+    }
     decrypt(v,k);
     m = write(fd_file, v, size-total);
     //Il faudrait supprimer les derniers octets en trop du fichiers
@@ -114,9 +122,9 @@ int recvFile(char file[],int fd, int size, uint64 cle){
 
 int recvDir(int fd){
     char buf[8];
-    int n,m,sfd;
+    int m;
     stdout = dup(1);
-    while( n = read(fd,buf,8) ){
+    while( read(fd,buf,8) ){
         m = write(stdout, buf, 8);
         if(m == -1){
             perror("Erreur de reception du fichier lors de l'écriture");

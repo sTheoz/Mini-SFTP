@@ -1,1 +1,59 @@
-petit teN�
+n~~�'installation de base : Installer le serveur SSH et utilitaires usuels
+
+Sécuriser les services de la machine avec la doc Debian : https://www.debian.org/doc/manuals/securing-debian-howto/ch4.fr.html
+
+(Je n'ai pas fait LYNIS, le trousseau de mdp)
+
+
+
+A ajouter dans le fichier /etc/ssh
+
+ListenAddress 192.168.0.1
+
+Ne faîtes écouter SSH que sur une interface donnée, juste au cas où vous en ayez plus d'une (et ne voulez pas que SSH y soit disponible) ou si vous ajoutez, dans le futur, une nouvelle carte réseau (et ne voulez pas de connexions SSH dessus).
+
+PermitRootLogin no
+
+Essayez autant que possible de ne pas autoriser de connexion en tant que superutilisateur. Si quelqu'un veut devenir superutilisateur par SSH, deux connexions sont maintenant nécessaires et le mot de passe du superutilisateur ne peut être attaqué par force brute par SSH.
+
+Port 666 ou ListenAddress 192.168.0.1:666
+
+Change le port d'écoute, ainsi l'intrus ne peut être complètement sûr de l'exécution d'un démon sshd (soyez prévenus, c'est de la sécurité par l'obscurité).
+
+PermitEmptyPasswords no
+
+Les mots de passe vides sont un affront au système de sécurité.
+
+AllowUsers alex ref
+
+Autorise seulement certains utilisateurs à avoir accès par SSH à cette machine. user@host peut également être utilisé pour n'autoriser l'accès qu'à un utilisateur donné depuis un hôte donné.
+
+AllowGroups wheel admin
+
+Autorise seulement certains membres de groupes à avoir accès par SSH à cette machine. AllowGroups et AllowUsers ont des directives équivalentes pour interdire l'accès à la machine. Sans surprise elles s'appellent « DenyUsers » et « DenyGroups ».
+
+PasswordAuthentication yes
+
+Il vous appartient complètement de décider ce que vous voulez faire. Il est plus sûr d'autoriser l'accès à la machine uniquement aux utilisateurs avec des clefs SSH placées dans le fichier ~/.ssh/authorized_keys. Si c'est ce que vous voulez, positionnez cette option à « no ».
+
+
+Protocole 2 
+
+
+
+Installation des paquets chechsecurity afin de sauvegarder tous les jours le journal de modification. (Tripwire)
+phrase secrète : securisationforte
+
+Je n'ai pas chrooter SSH, l'interdiction du transfert de fichiers ne m'intéresse pas car le sftp est plus sécuriser que le ftp.
+
+Squid permet de relayer les requetes HTTP, SMTP afin d'accéder aux serveurs internes. Cela ne m'intéresse pas.
+
+
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+KeePass2Droid : Téléchargement du logiciel à partir du site http://keepass.info
+
+La première option que nous avons lors de l'ouvertue de l'application est l'importation d'une base de données existante ou la création d'une nouvelle base de donnée. Cette base de donnée est stocké localement sur notre matériel.
+Ensuite nous pouvons y ajouter des mots de passe ou bien des données confidentiels de type carte d'dentité ou encore carte de crédit. Nous pouvons dans les paramètres faire don d'une bière, cela est très intéressant.
+Pour utiliser un mot de passe il faut aller sur l'application et copier le mot de passe dans le presse papier. Celui-ci  peut être automatiquement supprimé du presse papier près un certains temps que l'on peut défini+7��y

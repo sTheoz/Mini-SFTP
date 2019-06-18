@@ -18,14 +18,14 @@ struct request {
 /* on alignera la taille de la strucuture sur un multiple de 8 octets (pour tea) en controlant
  * MAXPATH */
 
-int num_request(char req[]){
-    if(strcmp(req,"put") == 0)return REQUEST_PUT;
+int num_request(char* req){
+    if( strcmp(req,"put") == 0)return REQUEST_PUT;
     if( strcmp( req , "get") == 0)return REQUEST_GET;
     if( strcmp( req , "dir") == 0)return REQUEST_DIR;
     return REQUEST_ERROR;
 }
 
-struct request r_put(char file[]){
+struct request r_put(char* file){
     struct request r;
     r.kind = REQUEST_PUT;
     strcpy(r.path, file);
@@ -33,14 +33,14 @@ struct request r_put(char file[]){
     return r;
 }
 
-struct request r_get(char file[]){
+struct request r_get(char* file){
     struct request r;
     r.kind = REQUEST_GET;
     strcpy(r.path, file);
     return r;
 }
 
-struct request r_dir(char directory[]){
+struct request r_dir(char* directory){
     struct request r;
     r.kind = REQUEST_DIR;
     strcpy(r.path, directory);
@@ -48,8 +48,7 @@ struct request r_dir(char directory[]){
 }
 
 struct request readRequest(int fd){
-    int n;
     struct request r;
-    n = recv(fd, &r , sizeof(r), 0);
+    recv(fd, &r , sizeof(r), 0);
     return r;
 }

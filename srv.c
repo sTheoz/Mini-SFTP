@@ -10,6 +10,7 @@
 #include <netdb.h>
 #include <sys/wait.h>
 #include <errno.h>
+#include <signal.h>
 
 #include "request.h"
 #include "response.h"
@@ -18,75 +19,8 @@
 
 #define BFSZ 256
 
-int main(void)
-{
-    char buf[BFSZ];
-    struct sockaddr_in scksrv,sckclt;
-    pid_t pid;
-    int sfd,l,ll,n=0,fd,nwsfd, error;
 
-    struct request r;
-    uint64 result_A;
-    
-    /*sfd = socket(AF_INET, SOCK_STREAM,0);
-    if(sfd == -1){
-        perror("Socket creation");
-        exit(1);
-    }*/
-
-    sfd=create_tcp_server();
-    //Préparation d'une struct sockaddr_in avec les coordonnées du serveur
-    /* l=sizeof(struct sockaddr_in);
-    memset(&scksrv,0,l);
-    scksrv.sin_family = AF_INET;
-    scksrv.sin_addr.s_addr = INADDR_ANY;
-    scksrv.sin_port = htons(7716);
-    error = bind(sfd,(struct sockaddr*) &scksrv , l);
-    if(error == -1 ){
-        perror("Binding");
-        exit(2);
-    }
-    listen(sfd,0);*/
-
-
-    //Il entre dans une boucle d'extraction des demandes de connexions
-    //fd=open(file,O_RDWR|O_CREAT,0600);
-    bzero(buf,BFSZ);
-    while(1){
-        ll=l;
-        printf("En attente de connexion...\n");
-        //Accepte une nouvelle connexion
-        nwsfd = accept(sfd,(struct sockaddr *)&sckclt , &ll);
-        //nwsfd est un nouveau descripteur de socket pr à être utilisé pour déployer avec ce nouveau client
-        pid=fork();
-        //Rentre dans la partie du fils
-        if(pid == 0){
-            close(sfd);
-            while(1){
-                //Echange de clé avec diffie
-
-                result_A = recup(nwsfd);
-
-                //Lit la requête
-                r = readRequest(nwsfd);
-                //La requête est dans la structure
-                //Identifie et contruction de la reponse
-                n = sendResponse(nwsfd, r,result_A);
-                //Envoie de la réponse
-
-                //L'échange de donnée se fait avec TEA
-
-            }
-        }
-        printf("Connexion réalisé avec le client %d\n",nwsfd);
-        //Ferme la socket du nouveau client dans le père afin d'attendre une nouvelle connexion à nouveau
-        close(nwsfd);
-        
-    }
-    return 0;
-}
-
-
+//Fonction majoritairement pris sur Lucas N.
 int create_tcp_server()
 {
     int sfd;
@@ -133,4 +67,72 @@ int create_tcp_server()
         exit(EXIT_FAILURE);
     }
     return (sfd);
+}
+
+int main(void)
+{
+    char buf[BFSZ];
+    struct sockaddr_in sckclt;
+    pid_t pid;
+    int sfd,ll,nwsfd;
+
+    struct request r;
+    uint64 result_A;
+    
+    /*sfd = socket(AF_INET, SOCK_STREAM,0);
+    if(sfd == -1){
+        perror("Socket creation");
+        exit(1);
+    }*/
+
+    sfd=create_tcp_server();
+    //Préparation d'une struct sockaddr_in avec les coordonnées du serveur
+    /* l=sizeof(struct sockaddr_in);
+    memset(&scksrv,0,l);
+    scksrv.sin_family = AF_INET;
+    scksrv.sin_addr.s_addr = INADDR_ANY;
+    scksrv.sin_port = htons(7716);
+    error = bind(sfd,(struct sockaddr*) &scksrv , l);
+    if(error == -1 ){
+        perror("Binding");
+        exit(2);
+    }
+    listen(sfd,0);*/
+
+
+    //Il entre dans une boucle d'extraction des demandes de connexions
+    //fd=open(file,O_RDWR|O_CREAT,0600);
+    bzero(buf,BFSZ);
+    while(1){
+        printf("En attente de connexion...\n");
+        //Accepte une nouvelle connexion
+        nwsfd = accept(sfd,(struct sockaddr *)&sckclt , &ll);
+        signal(SIGCHLD, SIG_IGN);
+        //nwsfd est un nouveau descripteur de socket pr à être utilisé pour déployer avec ce nouveau client
+        pid=fork();
+        //Rentre dans la partie du fils
+        if(pid == 0){
+            close(sfd);
+            while(1){
+                //Echange de clé avec diffie
+
+                result_A = recup(nwsfd);
+
+                //Lit la requête
+                r = readRequest(nwsfd);
+                //La requête est dans la structure
+                //Identifie et contruction de la reponse
+                sendResponse(nwsfd, r,result_A);
+                //Envoie de la réponse
+
+                //L'échange de donnée se fait avec TEA
+
+            }
+        }
+        printf("Connexion réalisé avec le client %d\n",nwsfd);
+        //Ferme la socket du nouveau client dans le père afin d'attendre une nouvelle connexion à nouveau
+        close(nwsfd);
+        
+    }
+    return 0;
 }
